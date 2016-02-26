@@ -50,6 +50,10 @@ public:
 	String extractParsingItemsList(String& buf, int startPos, int endPos,
 			char delimChar, char endChar,
 			HashMap<String, String>* resultItems);
+<<<<<<< 28e77e6019cb409366a664dc6cac00f950fb5dd2
+=======
+	void parseRawData(HttpServer *server, pbuf* buf);
+>>>>>>> buffer for parseHeader and parsePostData to handle split data
 
 private:
 	String method;

@@ -136,6 +136,7 @@ HttpParseResult HttpRequest::parseHeader(HttpServer *server, pbuf* buf)
 				{
 					debugf("Name: %s", name.c_str());
 					if (name == "cookie")
+
 					{
 						if (cookies == NULL) cookies = new HashMap<String, String>();
 						extractParsingItemsList(tmpbuf, delim + 1, nextLine, ';', '\r', cookies);
@@ -228,6 +229,7 @@ String HttpRequest::extractParsingItemsList(String& buf, int startPos, int endPo
 		if (nextItem == -1) nextItem = endPos;
 		if (nextItem > endPos || delimItem == -1) nextItem = endPos;
 		if (delimItem == -1) break;
+
 		String ItemName = buf.substring(startItem, delimItem);
 		String ItemValue = buf.substring(delimItem+1, nextItem);
 		char* nam = uri_unescape(NULL, 0, ItemName.c_str(), -1);
