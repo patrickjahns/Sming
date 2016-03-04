@@ -65,7 +65,6 @@ private:
 	HashMap<String, String> *cookies;
 	int postDataProcessed;
 	int headerDataProcessed;
-	char *bodyBuf;
 
 	friend class TemplateFileStream;
 };

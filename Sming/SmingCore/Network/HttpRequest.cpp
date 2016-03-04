@@ -19,7 +19,6 @@ HttpRequest::HttpRequest()
 	cookies = NULL;
 	headerDataProcessed = 0;
 	postDataProcessed = 0;
-	bodyBuf = NULL;
 	tmpbuf = "";
 }
 
@@ -30,10 +29,7 @@ HttpRequest::~HttpRequest()
 	delete requestPostParameters;
 	delete cookies;
 	postDataProcessed = 0;
-	if (bodyBuf != NULL)
-	{
-		os_free(bodyBuf);
-	}
+
 }
 
 String HttpRequest::getQueryParameter(String parameterName, String defaultValue /* = "" */)
@@ -196,6 +192,7 @@ HttpParseResult HttpRequest::parsePostData(HttpServer *server, pbuf* buf)
 	{
 		tmpbuf = extractParsingItemsList(tmpbuf, 0, tmpbuf.length(), '&', ' ', requestPostParameters);
 	}
+
 
 	postDataProcessed += buf->tot_len - start ;
 
