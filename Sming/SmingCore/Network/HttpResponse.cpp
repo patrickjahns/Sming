@@ -51,6 +51,16 @@ void HttpResponse::redirect(String location /* = "" */)
 	setHeader("Location", location);
 }
 
+void HttpResponse::setStatusCode(int code, String msg /* = "" */) 
+{
+	status = String(code) + " " + msg;
+}
+
+void HttpResponse::setStatusCode(String statuscode) 
+{
+	status = statuscode;
+}
+
 String HttpResponse::getStatusName()
 {
 	return status;

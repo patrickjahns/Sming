@@ -33,6 +33,8 @@ public:
 	void setContentType(const String type);
 	void setCookie(const String name, const String value);
 	void setHeader(const String name, const String value);
+	void setStatusCode(int code, String msg = "");
+	void setStatusCode(String statuscode);
 	bool hasHeader(const String name);
 
 	void setCache(int maxAgeSeconds = 3600, bool isPublic = false);
