@@ -212,7 +212,10 @@ bool HttpResponse::sendJsonObject(JsonObjectStream* newJsonStreamInstance)
 		delete stream;
 		stream = NULL;
 	}
-
+	JsonObject& rootObject = newJsonStreamInstance->getRoot();
+	if(rootObject != JsonObject::invalid()) {
+		setHeader("Content-Length", String(rootObject.measureLength()));
+	}
 	stream = newJsonStreamInstance;
 	if (!hasHeader("Content-Type"))
 		setContentType(ContentType::JSON);
