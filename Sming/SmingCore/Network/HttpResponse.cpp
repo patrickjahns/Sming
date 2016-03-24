@@ -56,9 +56,9 @@ void HttpResponse::setStatusCode(int code, String msg /* = "" */)
 	status = String(code) + " " + msg;
 }
 
-void HttpResponse::setStatusCode(String statuscode) 
+void HttpResponse::setStatusCode(int code) 
 {
-	status = statuscode;
+	setStatusCode(code, "");
 }
 
 String HttpResponse::getStatusName()

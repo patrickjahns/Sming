@@ -34,7 +34,7 @@ public:
 	void setCookie(const String name, const String value);
 	void setHeader(const String name, const String value);
 	void setStatusCode(int code, String msg = "");
-	void setStatusCode(String statuscode);
+	void setStatusCode(int code);
 	bool hasHeader(const String name);
 
 	void setCache(int maxAgeSeconds = 3600, bool isPublic = false);
