@@ -37,6 +37,11 @@ endif
 ifeq ($(RBOOT_INTEGRATION),1)
 	CFLAGS += -DRBOOT_INTEGRATION
 endif
+ifeq ($(RBOOT_RTC_ENABLED),1)
+	# enable the temporary switch to rom feature
+	CFLAGS += -DBOOT_RTC_ENABLED
+endif
+
 ifeq ($(SPI_SIZE), 256K)
 	E2_OPTS += -256
 else ifeq ($(SPI_SIZE), 512K)
