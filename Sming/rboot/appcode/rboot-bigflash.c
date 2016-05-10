@@ -30,48 +30,6 @@ extern uint32 SPIRead(uint32, void*, uint32);
 extern void ets_printf(const char*, ...);
 extern void Cache_Read_Enable(uint32, uint32, uint32);
 
-#ifdef BOOT_RTC_ENABLED
-
-static uint8 calc_chksum(uint8 *start, uint8 *end) {
-	uint8 chksum = CHKSUM_INIT;
-	while(start < end) {
-		chksum ^= *start;
-		start++;
-	}
-	return chksum;
-}
-
-uint32 system_rtc_mem(int32 addr, void *buff, int32 length, uint32 mode) {
-
-    int32 blocks;
-
-    // validate reading a user block
-    if (addr < 64) return 0;
-    if (buff == 0) return 0;
-    // validate 4 byte aligned
-    if (((uint32)buff & 0x3) != 0) return 0;
-    // validate length is multiple of 4
-    if ((length & 0x3) != 0) return 0;
-
-    // check valid length from specified starting point
-    if (length > (0x300 - (addr * 4))) return 0;
-
-    // copy the data
-    for (blocks = (length >> 2) - 1; blocks >= 0; blocks--) {
-        volatile uint32 *ram = ((uint32*)buff) + blocks;
-        volatile uint32 *rtc = ((uint32*)0x60001100) + addr + blocks;
-		if (mode == RBOOT_RTC_WRITE) {
-			*rtc = *ram;
-		} else {
-			*ram = *rtc;
-		}
-    }
-
-    return 1;
-}
-
-#endif
-
 uint8 rBoot_mmap_1 = 0xff;
 uint8 rBoot_mmap_2 = 0xff;
 
@@ -79,39 +37,40 @@ uint8 rBoot_mmap_2 = 0xff;
 void IRAM_ATTR Cache_Read_Enable_New(void) {
 
 	if (rBoot_mmap_1 == 0xff) {
-		uint32 addr;
+		uint32 val;
 		rboot_config conf;
-#ifdef BOOT_RTC_ENABLED
-		rboot_rtc_data rtc;
-#endif
-		Cache_Read_Disable();
 
 		SPIRead(BOOT_CONFIG_SECTOR * SECTOR_SIZE, &conf, sizeof(rboot_config));
 
 #ifdef BOOT_RTC_ENABLED
-		if (system_rtc_mem(RBOOT_RTC_ADDR, &rtc, sizeof(rboot_rtc_data), RBOOT_RTC_READ) &&
-			(rtc.chksum == calc_chksum((uint8*)&rtc, (uint8*)&rtc.chksum))) {
-			if (rtc.last_mode & MODE_TEMP_ROM) {
-				addr = conf.roms[rtc.temp_rom];
-			}
-			else
-			{
-				addr = conf.roms[conf.current_rom];
-			}
-		}
-		else
-		{
-			addr = conf.roms[conf.current_rom];
-		}
+		// rtc support here isn't written nicely, we don't read the whole structure and
+		// we don't check the checksum. However this is only done on first boot, so
+		// the rtc data should have just been set and the user app won't have had
+		// chance to corrupt it or suspend or anything else that might upset it. And if
+		// it were bad what should we do anyway? We can't just ignore bad data here, we
+		// need it. But the main reason is that this code must be in iram, which is in
+		// very short supply, doing this "properly" increases the size about 2.5x
+
+		// used only to calculate offset into structure, should get optimized out
+		rboot_rtc_data rtc;
+		uint8 off = (uint8*)&rtc.last_rom - (uint8*)&rtc;
+		// get the four bytes containing the one of interest
+		volatile uint32 *rtcd = (uint32*)(0x60001100 + (RBOOT_RTC_ADDR*4) + (off & ~3));
+		val = *rtcd;
+		// extract the one of interest
+		val = ((uint8*)&val)[off & 3];
+		// get address of rom
+		val = conf.roms[val];
 #else
-		addr = conf.roms[conf.current_rom];
+		val = conf.roms[conf.current_rom];
 #endif
-		addr /= 0x100000;
 
-		rBoot_mmap_2 = addr / 2;
-		rBoot_mmap_1 = addr % 2;
+		val /= 0x100000;
 
-		//ets_printf("mmap %d,%d,1\r\n", rBoot_mmap_1, rBoot_mmap_2);
+		rBoot_mmap_2 = val / 2;
+		rBoot_mmap_1 = val % 2;
+
+		ets_printf("mmap %d,%d,1\r\n", rBoot_mmap_1, rBoot_mmap_2);
 	}
 
 	Cache_Read_Enable(rBoot_mmap_1, rBoot_mmap_2, 1);
